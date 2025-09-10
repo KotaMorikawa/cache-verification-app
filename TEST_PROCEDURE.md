@@ -81,36 +81,40 @@ http://localhost:3000
    - ダッシュボードから該当ケースをクリック
    - 初期表示データを記録
 
-2. **ページ更新テスト**
-   - 「ページ更新」ボタンをクリック
+2. **ハードリフレッシュテスト**
+   - 「ハードリフレッシュ」ボタンをクリック
+   - location.reloadによる完全ページ更新
    - 新しいデータが表示されるかを確認
    - タイムスタンプを比較
 
-#### 3.2 ナビゲーション動作確認
+#### 3.2 ルーターキャッシュ動作確認
 
-1. **ソフトナビゲーション**
-   - 「ソフトナビゲーション」ボタンをクリック
+1. **Router Refresh**
+   - 「Router Refresh」ボタンをクリック
+   - router.refresh()によるサーバーコンポーネント再レンダリング
+   - データの変化を確認
+
+2. **Router Cache Test**
+   - 「Router Cache Test」ボタンをクリック
+   - router.push()によるクライアントサイドナビゲーション
    - Router Cacheの影響を確認
 
-2. **ハードナビゲーション**
+3. **ハードナビゲーション**
    - ブラウザのURL直接入力でアクセス
    - データの変化を確認
 
 #### 3.3 キャッシュ操作確認
 
 1. **RevalidateTag実行**
-   - 「RevalidateTag」ボタンをクリック
+   - 「RevalidateTag」ボタンをクリック（Server Action経由）
    - ログに実行時刻が記録されることを確認
+   - コンソールで"revalidated: true"が表示されることを確認
 
 2. **RevalidateTag後の効果確認**
-   - ページを更新
+   - 「ハードリフレッシュ」または「Router Refresh」で更新
    - 新しいデータが取得されるかを確認
+   - キャッシュが有効な場合のみRevalidateTagの効果が表れる
 
-#### 3.4 API経由確認
-
-1. **API経由データ取得**
-   - 「API経由で取得」ボタンをクリック
-   - Route Handler経由のデータを確認
 
 ## 📈 検証ポイント
 
@@ -131,6 +135,10 @@ http://localhost:3000
 
 2. **クライアントログ**  
    TestPanelの「ログ」セクションでクライアント側の動作確認
+   - Initial load: 初回ロード時刻
+   - Router refresh at: router.refresh()実行時刻
+   - Router cache test at: router.push()実行時刻
+   - RevalidateTag executed at: RevalidateTag実行時刻
 
 3. **ブラウザNetwork Tab**
    - リクエストの有無
@@ -211,11 +219,13 @@ npm run start
 - Unix timeを正確に比較
 - ミリ秒単位での差異も確認
 - サーバーログと併せて確認
+- globalCounterによる一意性確保を確認
 
 #### 3. RevalidateTagが効かない
 - コンソールエラーをチェック
-- Server ActionとRoute Handler両方で試行
+- Server Action経由の実行を確認
 - タグ名のタイポ確認（'time'で統一）
+- キャッシュが有効でない場合はRevalidateTagも無効
 
 #### 4. 開発環境と本番環境で動作が異なる
 - 必ず `npm run build && npm run start` で検証
@@ -230,6 +240,12 @@ npm run build -- --no-lint
 # メモリ不足の場合  
 NODE_OPTIONS='--max_old_space_size=4096' npm run build
 ```
+
+#### 6. ボタンの動作が分からない
+- 🔄 ハードリフレッシュ: location.reload()による完全ページ更新
+- 🔁 Router Refresh: router.refresh()によるサーバーコンポーネント再レンダリング
+- 🔗 Router Cache Test: router.push()によるクライアントサイドナビゲーション
+- 🗑️ RevalidateTag: Server Action経由でのキャッシュタグ無効化
 
 ### デバッグ用コマンド
 
