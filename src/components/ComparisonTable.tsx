@@ -2,13 +2,11 @@
 
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
-import {
-  fetchCase1Data,
-  fetchCase2Data,
-  fetchCase3Data,
-  fetchCase4Data,
-  fetchCase5Data,
-} from "@/app/actions";
+import { fetchCase1Data } from "@/app/case1/actions";
+import { fetchCase2Data } from "@/app/case2/actions";
+import { fetchCase3Data } from "@/app/case3/actions";
+import { fetchCase4Data } from "@/app/case4/actions";
+import { fetchCase5Data } from "@/app/case5/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

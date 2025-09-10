@@ -1,13 +1,18 @@
 import { TestPanel } from "@/components/TestPanel";
-import { generateTimeData } from "@/lib/timeUtils";
 
 export const dynamic = "force-dynamic";
 
 async function getData() {
-  // 独自の時刻データ生成関数を使用（外部APIの代替）
-  const data = generateTimeData();
+  const res = await fetch("http://localhost:3000/api/time", {
+    next: { tags: ["time"] },
+  });
 
-  console.log(`[Case1] Generated data at ${new Date().toISOString()}`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
+
+  const data = await res.json();
+  console.log(`[Case1] Fetched data at ${new Date().toISOString()}`);
 
   return data;
 }
