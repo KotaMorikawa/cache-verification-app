@@ -1,23 +1,15 @@
 import { TestPanel } from "@/components/TestPanel";
+import { generateTimeData } from "@/lib/timeUtils";
 
 export const dynamic = "force-dynamic";
 
 async function getData() {
-  try {
-    const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Tokyo", {
-      next: { tags: ["time"] },
-    });
+  // 独自の時刻データ生成関数を使用（外部APIの代替）
+  const data = generateTimeData();
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+  console.log(`[Case1] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case1] Fetched at ${new Date().toISOString()}`);
-    return res.json();
-  } catch (error) {
-    console.error("[Case1] Fetch error:", error);
-    throw error;
-  }
+  return data;
 }
 
 export default async function Case1Page() {

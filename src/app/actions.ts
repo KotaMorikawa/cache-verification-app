@@ -1,5 +1,6 @@
 "use server";
 import { revalidateTag } from "next/cache";
+import { generateServerActionTimeData } from "@/lib/timeUtils";
 
 export async function clearTimeCache() {
   revalidateTag("time");
@@ -7,26 +8,14 @@ export async function clearTimeCache() {
 }
 
 // 各ケース用のデータ取得関数
-const BASE_URL = "https://worldtimeapi.org/api/timezone/Asia/Tokyo";
-
 export async function fetchCase1Data() {
   try {
-    const res = await fetch(BASE_URL, {
-      cache: "force-cache",
-      next: { tags: ["time"] },
-    });
+    // 独自の時刻データ生成関数を使用
+    const data = generateServerActionTimeData("case1");
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+    console.log(`[Case1 Server Action] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case1 Server Action] Fetched at ${new Date().toISOString()}`);
-    const data = await res.json();
-    return {
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: "case1",
-    };
+    return data;
   } catch (error) {
     console.error("[Case1 Server Action] Error:", error);
     throw error;
@@ -35,22 +24,12 @@ export async function fetchCase1Data() {
 
 export async function fetchCase2Data() {
   try {
-    const res = await fetch(BASE_URL, {
-      cache: "force-cache",
-      next: { tags: ["time"] },
-    });
+    // 独自の時刻データ生成関数を使用
+    const data = generateServerActionTimeData("case2");
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+    console.log(`[Case2 Server Action] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case2 Server Action] Fetched at ${new Date().toISOString()}`);
-    const data = await res.json();
-    return {
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: "case2",
-    };
+    return data;
   } catch (error) {
     console.error("[Case2 Server Action] Error:", error);
     throw error;
@@ -59,21 +38,12 @@ export async function fetchCase2Data() {
 
 export async function fetchCase3Data() {
   try {
-    const res = await fetch(BASE_URL, {
-      next: { tags: ["time"], revalidate: 60 },
-    });
+    // 独自の時刻データ生成関数を使用
+    const data = generateServerActionTimeData("case3");
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+    console.log(`[Case3 Server Action] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case3 Server Action] Fetched at ${new Date().toISOString()}`);
-    const data = await res.json();
-    return {
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: "case3",
-    };
+    return data;
   } catch (error) {
     console.error("[Case3 Server Action] Error:", error);
     throw error;
@@ -82,21 +52,12 @@ export async function fetchCase3Data() {
 
 export async function fetchCase4Data() {
   try {
-    const res = await fetch(BASE_URL, {
-      cache: "force-cache",
-    });
+    // 独自の時刻データ生成関数を使用
+    const data = generateServerActionTimeData("case4");
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+    console.log(`[Case4 Server Action] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case4 Server Action] Fetched at ${new Date().toISOString()}`);
-    const data = await res.json();
-    return {
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: "case4",
-    };
+    return data;
   } catch (error) {
     console.error("[Case4 Server Action] Error:", error);
     throw error;
@@ -105,21 +66,12 @@ export async function fetchCase4Data() {
 
 export async function fetchCase5Data() {
   try {
-    const res = await fetch(BASE_URL, {
-      cache: "no-cache",
-    });
+    // 独自の時刻データ生成関数を使用
+    const data = generateServerActionTimeData("case5");
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
+    console.log(`[Case5 Server Action] Generated data at ${new Date().toISOString()}`);
 
-    console.log(`[Case5 Server Action] Fetched at ${new Date().toISOString()}`);
-    const data = await res.json();
-    return {
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: "case5",
-    };
+    return data;
   } catch (error) {
     console.error("[Case5 Server Action] Error:", error);
     throw error;

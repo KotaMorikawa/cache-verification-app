@@ -2,6 +2,14 @@
 
 import { Link2, Radio, RotateCcw, Trash2 } from "lucide-react";
 import { useState } from "react";
+import {
+  clearTimeCache,
+  fetchCase1Data,
+  fetchCase2Data,
+  fetchCase3Data,
+  fetchCase4Data,
+  fetchCase5Data,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -40,7 +48,6 @@ export function TestPanel({ caseNumber, caseTitle, initialData, fetchConfig }: T
   const handleRevalidate = async () => {
     setIsLoading(true);
     try {
-      const clearTimeCache = (await import("@/app/actions")).clearTimeCache;
       const result = await clearTimeCache();
       setLogs((prev) => [...prev, `RevalidateTag executed: ${result.timestamp}`]);
     } catch (error) {
@@ -56,27 +63,22 @@ export function TestPanel({ caseNumber, caseTitle, initialData, fetchConfig }: T
       let data: ServerActionResponse;
       switch (caseNumber) {
         case 1: {
-          const { fetchCase1Data } = await import("@/app/actions");
           data = await fetchCase1Data();
           break;
         }
         case 2: {
-          const { fetchCase2Data } = await import("@/app/actions");
           data = await fetchCase2Data();
           break;
         }
         case 3: {
-          const { fetchCase3Data } = await import("@/app/actions");
           data = await fetchCase3Data();
           break;
         }
         case 4: {
-          const { fetchCase4Data } = await import("@/app/actions");
           data = await fetchCase4Data();
           break;
         }
         case 5: {
-          const { fetchCase5Data } = await import("@/app/actions");
           data = await fetchCase5Data();
           break;
         }

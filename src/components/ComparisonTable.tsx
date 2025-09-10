@@ -2,6 +2,13 @@
 
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
+import {
+  fetchCase1Data,
+  fetchCase2Data,
+  fetchCase3Data,
+  fetchCase4Data,
+  fetchCase5Data,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,9 +36,6 @@ export function ComparisonTable() {
 
     // Server Actionsを並列実行
     try {
-      const { fetchCase1Data, fetchCase2Data, fetchCase3Data, fetchCase4Data, fetchCase5Data } =
-        await import("@/app/actions");
-
       const [case1, case2, case3, case4, case5] = await Promise.allSettled([
         fetchCase1Data(),
         fetchCase2Data(),
