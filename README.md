@@ -183,14 +183,87 @@ Route (app)                         Size  First Load JS
 
 詳細は [TEST_PROCEDURE.md](./TEST_PROCEDURE.md) のトラブルシューティング章を参照
 
-## 🎯 期待される成果
+## 🔬 検証結果
+
+### テスト実行環境
+- **日時**: 2025年9月10日
+- **バージョン**: Next.js 15.5.2, React 19.1.0
+- **環境**: 本番ビルド (`npm run build && npm run start`)
+
+### 詳細結果
+
+| ケース | 設定 | ハードリフレッシュ | RevalidateTag | 結論 |
+|--------|------|------------------|---------------|------|
+| **Case 1** | `next: { tags: ['time'] }` | ❌ キャッシュされない | ⚠️ 効果あり（但し意味なし） | **キャッシュ無効** |
+| **Case 2** | `cache: 'force-cache', next: { tags: ['time'] }` | ✅ キャッシュされる | ✅ 正常に新データ取得 | **キャッシュ有効** |
+| **Case 3** | `next: { tags: ['time'], revalidate: 60 }` | ✅ キャッシュされる | ✅ 正常に新データ取得 | **キャッシュ有効** |
+| **Case 4** | オプションなし | ❌ キャッシュされない | - | **キャッシュ無効** |
+| **Case 5** | `cache: 'no-store', next: { tags: ['time'] }` | ❌ キャッシュされない | ❌ 効果なし | **競合により無効** |
+
+### 🚨 重要な発見事項
+
+#### **`next: { tags: ['time'] }` だけではキャッシュが有効にならない**
+
+Next.js 15のドキュメント例では `next: { tags: ['time'] }` のみの記載がありますが、実際には**キャッシュは有効になりません**。
+
+```javascript
+// ❌ これだけではキャッシュされない（ドキュメント例）
+const data = await fetch(url, { next: { tags: ['time'] } })
+
+// ✅ 明示的なキャッシュ設定が必要
+const data = await fetch(url, { 
+  cache: 'force-cache',
+  next: { tags: ['time'] } 
+})
+
+// ✅ または revalidate オプション
+const data = await fetch(url, { 
+  next: { tags: ['time'], revalidate: 60 } 
+})
+```
+
+#### **`revalidateTag` が機能する条件**
+
+- ✅ `cache: 'force-cache'` + `next: { tags: [...] }`
+- ✅ `next: { tags: [...], revalidate: N }`
+- ❌ `next: { tags: [...] }` のみ
+- ❌ `cache: 'no-store'` + `next: { tags: [...] }`
+
+### 📋 推奨事項
+
+1. **キャッシュタグを使用する場合は必ず以下を併用**:
+   - `cache: 'force-cache'` または
+   - `revalidate` オプション
+
+2. **Next.js 15での推奨パターン**:
+   ```javascript
+   // 無期限キャッシュ + タグベース無効化
+   fetch(url, { 
+     cache: 'force-cache',
+     next: { tags: ['user', 'profile'] } 
+   })
+
+   // 時間ベース + タグベース無効化
+   fetch(url, { 
+     next: { 
+       tags: ['posts'], 
+       revalidate: 3600 // 1時間
+     } 
+   })
+   ```
+
+3. **開発時の注意**:
+   - 本番ビルドでの検証が必須
+   - `revalidateTag` の効果確認には適切なキャッシュ設定が前提
+
+## 🎯 検証完了項目
 
 この検証により以下を明確化：
 
-- [ ] Next.js 15での `next.tags` のみによるキャッシュ動作
-- [ ] `revalidateTag` が機能する最小要件  
-- [ ] 推奨されるキャッシュ設定パターン
-- [ ] Next.js 15キャッシュ戦略のベストプラクティス
+- ✅ Next.js 15での `next.tags` のみによるキャッシュ動作 → **無効であることを確認**
+- ✅ `revalidateTag` が機能する最小要件 → **明示的キャッシュ設定が必要**
+- ✅ 推奨されるキャッシュ設定パターン → **force-cache + tagsまたはrevalidate + tags**
+- ✅ Next.js 15キャッシュ戦略のベストプラクティス → **上記推奨事項を策定**
 
 ## 🤝 コントリビューション
 
@@ -206,7 +279,7 @@ Route (app)                         Size  First Load JS
 
 ---
 
-**📊 検証結果**: 詳細な検証結果は [TEST_PROCEDURE.md](./TEST_PROCEDURE.md) の記録シートに記入してください
+**📊 検証結果**: 上記の「🔬 検証結果」セクションに詳細なテスト結果を記載しています。
 
 **🔗 関連リンク**:
 - [Next.js 15 Documentation](https://nextjs.org/docs)
