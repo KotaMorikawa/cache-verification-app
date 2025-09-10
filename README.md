@@ -57,18 +57,38 @@ npm run start
 ```
 src/
 ├── app/
-│   ├── case1~5/           # 各テストケースページ
-│   │   └── page.tsx       # Server Component with fetch
+│   ├── case1/             # Case 1: タグのみ
+│   │   ├── page.tsx       # Server Component with fetch
+│   │   └── actions.ts     # Server Actions (revalidateTag)
+│   ├── case2/             # Case 2: force-cache + タグ
+│   │   ├── page.tsx       # Server Component with fetch
+│   │   └── actions.ts     # Server Actions (revalidateTag)
+│   ├── case3/             # Case 3: revalidate + タグ
+│   │   ├── page.tsx       # Server Component with fetch
+│   │   └── actions.ts     # Server Actions (revalidateTag)
+│   ├── case4/             # Case 4: デフォルト
+│   │   ├── page.tsx       # Server Component with fetch
+│   │   └── actions.ts     # Server Actions (revalidatePath)
+│   ├── case5/             # Case 5: no-store + タグ
+│   │   ├── page.tsx       # Server Component with fetch
+│   │   └── actions.ts     # Server Actions (revalidateTag)
 │   ├── api/
-│   │   ├── test/[case]/   # テスト用API Routes
-│   │   └── revalidate/    # キャッシュ無効化API
-│   ├── actions.ts         # Server Actions (revalidateTag)
+│   │   └── time/          # タイムスタンプAPI
+│   │       └── route.ts   # WorldTimeAPI プロキシ
 │   ├── layout.tsx         # アプリケーションレイアウト
-│   └── page.tsx          # ダッシュボード
-└── components/
-    ├── TestPanel.tsx      # 統一テストインターフェース
-    ├── ComparisonTable.tsx # リアルタイム比較テーブル
-    └── ui/               # shadcn/ui components
+│   ├── page.tsx          # ダッシュボード
+│   └── globals.css       # グローバルスタイル
+├── components/
+│   ├── TestPanel.tsx      # 統一テストインターフェース
+│   ├── ComparisonTable.tsx # リアルタイム比較テーブル
+│   └── ui/               # shadcn/ui components
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── table.tsx
+│       └── tooltip.tsx
+└── lib/
+    ├── utils.ts          # Tailwind utility functions
+    └── timeUtils.ts      # 時間関連ユーティリティ
 ```
 
 ## ✨ 主要機能
