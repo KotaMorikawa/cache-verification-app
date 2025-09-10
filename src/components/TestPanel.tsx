@@ -10,6 +10,11 @@ interface WorldTimeData {
   unixtime: number;
 }
 
+interface ServerActionResponse extends WorldTimeData {
+  serverTime: string;
+  caseNumber: string;
+}
+
 interface TestPanelProps {
   caseNumber: number;
   caseTitle: string;
@@ -47,9 +52,39 @@ export function TestPanel({ caseNumber, caseTitle, initialData, fetchConfig }: T
   const handleFetchAPI = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/test/case${caseNumber}`);
-      const data = await res.json();
-      setLogs((prev) => [...prev, `API fetch: ${data.datetime}`]);
+      // Server Actionを直接呼び出し
+      let data: ServerActionResponse;
+      switch (caseNumber) {
+        case 1: {
+          const { fetchCase1Data } = await import("@/app/actions");
+          data = await fetchCase1Data();
+          break;
+        }
+        case 2: {
+          const { fetchCase2Data } = await import("@/app/actions");
+          data = await fetchCase2Data();
+          break;
+        }
+        case 3: {
+          const { fetchCase3Data } = await import("@/app/actions");
+          data = await fetchCase3Data();
+          break;
+        }
+        case 4: {
+          const { fetchCase4Data } = await import("@/app/actions");
+          data = await fetchCase4Data();
+          break;
+        }
+        case 5: {
+          const { fetchCase5Data } = await import("@/app/actions");
+          data = await fetchCase5Data();
+          break;
+        }
+        default:
+          throw new Error(`Invalid case number: ${caseNumber}`);
+      }
+
+      setLogs((prev) => [...prev, `Server Action fetch: ${data.datetime}`]);
     } catch (error) {
       setLogs((prev) => [...prev, `Error: ${error}`]);
     }

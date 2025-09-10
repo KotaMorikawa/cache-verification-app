@@ -27,12 +27,28 @@ export function ComparisonTable() {
     setIsLoading(true);
     const newResults: Record<string, ApiResponseData> = {};
 
-    for (let i = 1; i <= 5; i++) {
-      try {
-        const res = await fetch(`/api/test/case${i}`);
-        const data = await res.json();
-        newResults[`case${i}`] = data;
-      } catch (_error) {
+    // Server Actionsを並列実行
+    try {
+      const { fetchCase1Data, fetchCase2Data, fetchCase3Data, fetchCase4Data, fetchCase5Data } =
+        await import("@/app/actions");
+
+      const [case1, case2, case3, case4, case5] = await Promise.allSettled([
+        fetchCase1Data(),
+        fetchCase2Data(),
+        fetchCase3Data(),
+        fetchCase4Data(),
+        fetchCase5Data(),
+      ]);
+
+      // 結果を格納
+      newResults.case1 = case1.status === "fulfilled" ? case1.value : { error: "Failed to fetch" };
+      newResults.case2 = case2.status === "fulfilled" ? case2.value : { error: "Failed to fetch" };
+      newResults.case3 = case3.status === "fulfilled" ? case3.value : { error: "Failed to fetch" };
+      newResults.case4 = case4.status === "fulfilled" ? case4.value : { error: "Failed to fetch" };
+      newResults.case5 = case5.status === "fulfilled" ? case5.value : { error: "Failed to fetch" };
+    } catch (_error) {
+      // 全体的なエラーハンドリング
+      for (let i = 1; i <= 5; i++) {
         newResults[`case${i}`] = { error: "Failed to fetch" };
       }
     }

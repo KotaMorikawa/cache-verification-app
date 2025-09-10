@@ -36,38 +36,49 @@ The application tests 5 different cache scenarios:
 5. **Case 5**: No-store + tags (conflicting options)
 
 ### Key Components
-- **TestPanel**: Unified testing interface for each case with interactive buttons
-- **Dashboard**: Real-time comparison of all cases
-- **API Routes**: `/api/test/[case]` for server-side fetch testing
-- **Server Actions**: `actions.ts` for `revalidateTag` functionality
+- **TestPanel**: Unified testing interface for each case with interactive buttons (shadcn/ui components)
+- **Dashboard**: Real-time comparison of all cases (located at `/`)
+- **ComparisonTable**: Real-time comparison component using Server Actions
+- **Server Actions**: `actions.ts` for `revalidateTag` and data fetching (API Routes not needed)
 
 ### Test API
 Uses `https://worldtimeapi.org/api/timezone/Asia/Tokyo` which provides timestamps for easy cache validation.
 
 ## Implementation Guidelines
 
-### File Structure (from PRD.md)
+### File Structure (Actual Implementation)
 ```
-src/app/
-├── dashboard/page.tsx          # Main comparison dashboard
-├── case[1-5]/page.tsx         # Individual test cases
-├── components/TestPanel.tsx   # Reusable test interface
-├── actions.ts                 # Server actions for revalidateTag
-└── api/
-    ├── test/[case]/route.ts   # Case-specific API endpoints
-    └── revalidate/route.ts    # Cache revalidation API
+src/
+├── app/
+│   ├── page.tsx               # Main comparison dashboard (root)
+│   ├── case[1-5]/page.tsx     # Individual test cases
+│   ├── actions.ts             # Server actions for revalidateTag and data fetching
+│   ├── layout.tsx             # Root layout
+│   └── globals.css            # Global styles
+└── components/
+    ├── TestPanel.tsx          # Reusable test interface (shadcn/ui)
+    ├── ComparisonTable.tsx    # Real-time comparison component
+    └── ui/                    # shadcn/ui components
+        ├── button.tsx
+        ├── card.tsx
+        └── table.tsx
 ```
+
+**Note**: API Routes (`/api/test/[case]`, `/api/revalidate`) are not needed. Server Actions provide a more efficient implementation.
 
 ### Critical Verification Steps
 1. Build in production mode (`npm run build`)
-2. Check build output for static vs dynamic rendering
+2. Check build output for static vs dynamic rendering:
+   - Dashboard (`/`) should be static (○)
+   - Case pages should be dynamic (ƒ)
 3. Run production server (`npm run start`)
-4. Test each case with dashboard buttons:
-   - 🔄 Page refresh (hard reload)
-   - 🔗 Soft navigation (Router cache)
+4. Test each case with TestPanel buttons:
+   - 🔄 ページ更新 (hard reload)
+   - 🔗 ソフトナビゲーション (Router cache)
    - 🗑️ RevalidateTag (cache invalidation)
-   - 📡 API fetch (Route handler)
-5. Compare timestamps to verify cache behavior
+   - 📡 API経由で取得 (Server Actions)
+5. Use ComparisonTable for real-time comparison
+6. Compare timestamps to verify cache behavior
 
 ### Expected Behavior Patterns
 - **Cached cases**: Same Unix timestamp across page refreshes
@@ -81,9 +92,15 @@ src/app/
 - **Turbopack** for builds (faster but verify functionality)
 - **Biome** for linting/formatting (not Prettier/ESLint)
 - **Tailwind CSS v4**
+- **shadcn/ui** for component library
+- **TypeScript** for type safety
+- **Server Actions** instead of API Routes
 
 ## Development Notes
 - All cache-related testing requires production builds
 - Server console logs show `[CaseN] Fetched at ...` for verification
 - TestPanel logs provide client-side timestamps
-- Build output indicates static (○) vs dynamic (λ) rendering
+- Build output indicates static (○) vs dynamic (ƒ) rendering
+- ComparisonTable uses Server Actions for parallel data fetching
+- UI components use shadcn/ui with lucide-react icons
+- No API Routes needed - Server Actions provide better DX and performance

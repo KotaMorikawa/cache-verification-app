@@ -1,36 +1,214 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js 15 Cache Verification App
 
-## Getting Started
+Next.js 15における `fetch` の `next.tags` オプションを使用したキャッシュ動作を体系的に検証するためのアプリケーションです。
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.1.0-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
+
+## 🎯 プロジェクト目的
+
+Next.js 15のドキュメントでは `next.tags` のみでキャッシュタグが設定される例が示されていますが、実際に `cache: 'force-cache'` なしでキャッシュが機能するかを検証します。
+
+### 主な検証項目
+
+- ✅ `next.tags` のみでキャッシュが有効になるか
+- ✅ `revalidateTag` が機能する条件
+- ✅ 各種キャッシュオプションの組み合わせ効果
+- ✅ Next.js 15のデフォルトキャッシュ動作
+
+## 🚀 クイックスタート
+
+### インストールと起動
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 依存関係のインストール
+npm install
+
+# 本番ビルド（重要：キャッシュ検証には必須）
+npm run build
+
+# 本番サーバー起動
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) にアクセス
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+⚠️ **重要**: キャッシュ動作の正確な検証には本番環境（`npm run start`）が必要です。開発環境（`npm run dev`）ではHMRキャッシュの影響で正確な結果が得られません。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### テスト実行
 
-## Learn More
+1. **ダッシュボード**でケース概要を確認
+2. 各**Case 1〜5**で個別テストを実行  
+3. **詳細な手順**は [TEST_PROCEDURE.md](./TEST_PROCEDURE.md) を参照
 
-To learn more about Next.js, take a look at the following resources:
+## 📋 テストケース
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| ケース | 設定 | 検証ポイント |
+|--------|------|-------------|
+| **Case 1** | `next: { tags: ['time'] }` | タグのみでキャッシュされるか |
+| **Case 2** | `cache: 'force-cache', next: { tags: ['time'] }` | 明示的キャッシュ + タグ |
+| **Case 3** | `next: { tags: ['time'], revalidate: 60 }` | revalidate + タグの組み合わせ |
+| **Case 4** | オプションなし | Next.js 15のデフォルト動作 |
+| **Case 5** | `cache: 'no-store', next: { tags: ['time'] }` | 競合オプションの動作 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗️ アーキテクチャ
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── case1~5/           # 各テストケースページ
+│   │   └── page.tsx       # Server Component with fetch
+│   ├── api/
+│   │   ├── test/[case]/   # テスト用API Routes
+│   │   └── revalidate/    # キャッシュ無効化API
+│   ├── actions.ts         # Server Actions (revalidateTag)
+│   ├── layout.tsx         # アプリケーションレイアウト
+│   └── page.tsx          # ダッシュボード
+└── components/
+    ├── TestPanel.tsx      # 統一テストインターフェース
+    ├── ComparisonTable.tsx # リアルタイム比較テーブル
+    └── ui/               # shadcn/ui components
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ✨ 主要機能
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 🎮 TestPanel (インタラクティブテスト)
+
+各ケースページで利用可能な統一テストインターフェース：
+
+- **🔄 ページ更新**: ハードリロードでキャッシュ確認
+- **🔗 ソフトナビゲーション**: Router Cache経由の遷移テスト  
+- **🗑️ RevalidateTag**: Server Actionによるキャッシュ無効化
+- **📡 API経由で取得**: Route Handler経由のフェッチテスト
+
+### 📊 ダッシュボード
+
+- 全ケースの概要表示
+- リアルタイム比較テーブル
+- 一括データ取得機能
+
+### 🔍 詳細ログ
+
+- サーバーサイドフェッチログ
+- クライアントサイドアクションログ  
+- タイムスタンプ比較による精密なキャッシュ検証
+
+## 🛠️ 技術スタック
+
+### Core
+- **Next.js** 15.5.2 (App Router)
+- **React** 19.1.0
+- **TypeScript** 5.x
+
+### Styling & UI
+- **Tailwind CSS** v4
+- **shadcn/ui** コンポーネント
+- **Lucide React** アイコン
+
+### Development
+- **Biome** (リンター/フォーマッター)
+- **Turbopack** (ビルドツール)
+
+### API
+- **WorldTimeAPI** - キャッシュ検証用タイムスタンプAPI
+
+## 📝 開発者向けコマンド
+
+```bash
+# 開発サーバー（HMRキャッシュあり）
+npm run dev
+
+# 本番ビルド
+npm run build  
+
+# 本番サーバー起動
+npm run start
+
+# コード品質チェック
+npm run lint        # Biome lint
+npm run typecheck   # TypeScript check  
+npm run format      # Biome format
+
+# クリーンビルド（キャッシュリセット）
+rm -rf .next && npm run build && npm run start
+```
+
+## 📚 ドキュメント
+
+- **[TEST_PROCEDURE.md](./TEST_PROCEDURE.md)** - 詳細なテスト手順書
+- **[PRD.md](./PRD.md)** - プロダクト要求仕様書
+- **[CLAUDE.md](./CLAUDE.md)** - AI開発時のプロジェクト指示書
+
+## 🧪 検証結果の解釈
+
+### キャッシュ判定基準
+
+- **キャッシュ有効**: 複数回アクセスで同じUnix Time
+- **キャッシュ無効**: アクセス毎に異なるUnix Time
+- **RevalidateTag有効**: 実行後に新しいデータ取得
+- **RevalidateTag無効**: 実行前後でデータ不変
+
+### ビルド出力の見方
+
+```
+Route (app)                         Size  First Load JS
+├ ○ /                            1.54 kB         129 kB
+├ ƒ /case1                           0 B         130 kB
+├ ƒ /case2                           0 B         130 kB
+```
+
+- `○` Static: 静的生成（ビルド時に事前レンダリング）
+- `ƒ` Dynamic: 動的レンダリング（リクエスト時にレンダリング）
+
+## 🔧 トラブルシューティング
+
+### よくある問題
+
+1. **キャッシュが期待通りに動作しない**
+   ```bash
+   rm -rf .next && npm run build && npm run start
+   ```
+
+2. **開発環境と本番環境で結果が異なる**  
+   → 必ず本番ビルドで検証してください
+
+3. **TypeScriptエラー**
+   ```bash
+   npm run typecheck
+   ```
+
+4. **RevalidateTagが効かない**
+   → コンソールログでエラーを確認
+
+詳細は [TEST_PROCEDURE.md](./TEST_PROCEDURE.md) のトラブルシューティング章を参照
+
+## 🎯 期待される成果
+
+この検証により以下を明確化：
+
+- [ ] Next.js 15での `next.tags` のみによるキャッシュ動作
+- [ ] `revalidateTag` が機能する最小要件  
+- [ ] 推奨されるキャッシュ設定パターン
+- [ ] Next.js 15キャッシュ戦略のベストプラクティス
+
+## 🤝 コントリビューション
+
+1. このリポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. Pull Requestを作成
+
+## 📄 ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
+
+---
+
+**📊 検証結果**: 詳細な検証結果は [TEST_PROCEDURE.md](./TEST_PROCEDURE.md) の記録シートに記入してください
+
+**🔗 関連リンク**:
+- [Next.js 15 Documentation](https://nextjs.org/docs)
+- [React Server Components](https://react.dev/reference/rsc/server-components)
+- [Next.js Caching](https://nextjs.org/docs/app/building-your-application/caching)

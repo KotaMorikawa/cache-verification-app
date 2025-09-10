@@ -33,7 +33,7 @@ export default function RootLayout({
             </Link>
             <div className="flex space-x-6">
               <Link href="/" className="hover:text-blue-300 transition-colors">
-                Dashboard
+                Home
               </Link>
               <Link href="/case1" className="hover:text-blue-300 transition-colors">
                 Case 1

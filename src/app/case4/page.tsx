@@ -3,9 +3,19 @@ import { TestPanel } from "@/components/TestPanel";
 export const dynamic = "force-dynamic";
 
 async function getData() {
-  const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Tokyo");
-  console.log(`[Case4] Fetched at ${new Date().toISOString()}`);
-  return res.json();
+  try {
+    const res = await fetch("https://worldtimeapi.org/api/timezone/Asia/Tokyo");
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    console.log(`[Case4] Fetched at ${new Date().toISOString()}`);
+    return res.json();
+  } catch (error) {
+    console.error("[Case4] Fetch error:", error);
+    throw error;
+  }
 }
 
 export default async function Case4Page() {

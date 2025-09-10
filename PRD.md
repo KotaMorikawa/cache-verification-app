@@ -133,8 +133,8 @@ export function TestPanel({ caseNumber, caseTitle, initialData, fetchConfig }: T
 ### ケース1: タグのみ設定（ドキュメントの例）
 
 ```typescript
-// app/case1/page.tsx
-import { TestPanel } from '@/app/components/TestPanel';
+// src/app/case1/page.tsx
+import { TestPanel } from '@/components/TestPanel';
 
 async function getData() {
   const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Tokyo', {
@@ -163,8 +163,8 @@ export default async function Case1Page() {
 ### ケース2: force-cache + タグ
 
 ```typescript
-// app/case2/page.tsx
-import { TestPanel } from '@/app/components/TestPanel';
+// src/app/case2/page.tsx
+import { TestPanel } from '@/components/TestPanel';
 
 async function getData() {
   const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Tokyo', {
@@ -195,8 +195,8 @@ export default async function Case2Page() {
 ### ケース3: revalidate + タグ
 
 ```typescript
-// app/case3/page.tsx
-import { TestPanel } from '@/app/components/TestPanel';
+// src/app/case3/page.tsx
+import { TestPanel } from '@/components/TestPanel';
 
 async function getData() {
   const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Tokyo', {
@@ -231,8 +231,8 @@ export default async function Case3Page() {
 ### ケース4: デフォルト（何も設定しない）
 
 ```typescript
-// app/case4/page.tsx
-import { TestPanel } from '@/app/components/TestPanel';
+// src/app/case4/page.tsx
+import { TestPanel } from '@/components/TestPanel';
 
 async function getData() {
   const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Tokyo');
@@ -258,8 +258,8 @@ export default async function Case4Page() {
 ### ケース5: no-store + タグ（競合するオプション）
 
 ```typescript
-// app/case5/page.tsx
-import { TestPanel } from '@/app/components/TestPanel';
+// src/app/case5/page.tsx
+import { TestPanel } from '@/components/TestPanel';
 
 async function getData() {
   const res = await fetch('https://worldtimeapi.org/api/timezone/Asia/Tokyo', {
@@ -287,99 +287,73 @@ export default async function Case5Page() {
 }
 ```
 
-## 🧪 検証用エンドポイント
+## 🧪 検証用Server Actions（API Routes不要）
 
-### テスト用API Routes
+**注意**: 当初予定していたAPI Routes (`/api/test/[case]`, `/api/revalidate`) は実装不要です。代わりにServer Actionsを使用することで、よりシンプルで効率的な実装を実現しています。
 
-```typescript
-// app/api/test/[case]/route.ts
-import { NextRequest } from 'next/server';
-
-async function fetchWithCase(caseNumber: string) {
-  const url = 'https://worldtimeapi.org/api/timezone/Asia/Tokyo';
-  
-  switch(caseNumber) {
-    case 'case1':
-      return fetch(url, { next: { tags: ['time'] } });
-    case 'case2':
-      return fetch(url, { cache: 'force-cache', next: { tags: ['time'] } });
-    case 'case3':
-      return fetch(url, { next: { tags: ['time'], revalidate: 60 } });
-    case 'case4':
-      return fetch(url);
-    case 'case5':
-      return fetch(url, { cache: 'no-store', next: { tags: ['time'] } });
-    default:
-      throw new Error('Invalid case number');
-  }
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { case: string } }
-) {
-  try {
-    const res = await fetchWithCase(params.case);
-    const data = await res.json();
-    
-    return Response.json({
-      ...data,
-      serverTime: new Date().toISOString(),
-      caseNumber: params.case
-    });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
-}
-```
-
-### revalidateTag API Route
+### Server Actions実装
 
 ```typescript
-// app/api/revalidate/route.ts
-import { revalidateTag } from 'next/cache';
-import { NextRequest } from 'next/server';
-
-export async function POST(request: NextRequest) {
-  const tag = request.nextUrl.searchParams.get('tag') || 'time';
-  
-  try {
-    revalidateTag(tag);
-    return Response.json({ 
-      revalidated: true, 
-      tag,
-      timestamp: new Date().toISOString() 
-    });
-  } catch (error) {
-    return Response.json({ 
-      revalidated: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
-  }
-}
-```
-
-### Server Action版
-
-```typescript
-// app/actions.ts
+// src/app/actions.ts
 'use server';
 import { revalidateTag } from 'next/cache';
 
+// revalidateTag用のServer Action
 export async function clearTimeCache() {
   revalidateTag('time');
   return { revalidated: true, timestamp: new Date().toISOString() };
+}
+
+// 各ケース用のデータ取得Server Actions
+const BASE_URL = "https://worldtimeapi.org/api/timezone/Asia/Tokyo";
+
+export async function fetchCase1Data() {
+  const res = await fetch(BASE_URL, {
+    next: { tags: ["time"] },
+  });
+  const data = await res.json();
+  return { ...data, serverTime: new Date().toISOString(), caseNumber: "case1" };
+}
+
+export async function fetchCase2Data() {
+  const res = await fetch(BASE_URL, {
+    cache: "force-cache",
+    next: { tags: ["time"] },
+  });
+  const data = await res.json();
+  return { ...data, serverTime: new Date().toISOString(), caseNumber: "case2" };
+}
+
+export async function fetchCase3Data() {
+  const res = await fetch(BASE_URL, {
+    next: { tags: ["time"], revalidate: 60 },
+  });
+  const data = await res.json();
+  return { ...data, serverTime: new Date().toISOString(), caseNumber: "case3" };
+}
+
+export async function fetchCase4Data() {
+  const res = await fetch(BASE_URL);
+  const data = await res.json();
+  return { ...data, serverTime: new Date().toISOString(), caseNumber: "case4" };
+}
+
+export async function fetchCase5Data() {
+  const res = await fetch(BASE_URL, {
+    cache: "no-store",
+    next: { tags: ["time"] },
+  });
+  const data = await res.json();
+  return { ...data, serverTime: new Date().toISOString(), caseNumber: "case5" };
 }
 ```
 
 ## 🎮 統合ダッシュボード
 
 ```typescript
-// app/dashboard/page.tsx
+// src/app/page.tsx （ダッシュボードは / に配置）
 import Link from 'next/link';
+import { ComparisonTable } from '@/components/ComparisonTable';
 
 export default function DashboardPage() {
   return (
@@ -428,10 +402,13 @@ export default function DashboardPage() {
 ### リアルタイム比較コンポーネント
 
 ```typescript
-// app/dashboard/ComparisonTable.tsx
+// src/components/ComparisonTable.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ComparisonTable() {
   const [results, setResults] = useState<Record<string, any>>({});
@@ -441,13 +418,29 @@ export function ComparisonTable() {
     setIsLoading(true);
     const newResults: Record<string, any> = {};
     
-    for (let i = 1; i <= 5; i++) {
-      try {
-        const res = await fetch(`/api/test/case${i}`);
-        const data = await res.json();
-        newResults[`case${i}`] = data;
-      } catch (error) {
-        newResults[`case${i}`] = { error: 'Failed to fetch' };
+    // Server Actionsを並列実行（API Routes不要）
+    try {
+      const { fetchCase1Data, fetchCase2Data, fetchCase3Data, fetchCase4Data, fetchCase5Data } =
+        await import("@/app/actions");
+
+      const [case1, case2, case3, case4, case5] = await Promise.allSettled([
+        fetchCase1Data(),
+        fetchCase2Data(),
+        fetchCase3Data(),
+        fetchCase4Data(),
+        fetchCase5Data(),
+      ]);
+
+      // 結果を格納
+      newResults.case1 = case1.status === "fulfilled" ? case1.value : { error: "Failed to fetch" };
+      newResults.case2 = case2.status === "fulfilled" ? case2.value : { error: "Failed to fetch" };
+      newResults.case3 = case3.status === "fulfilled" ? case3.value : { error: "Failed to fetch" };
+      newResults.case4 = case4.status === "fulfilled" ? case4.value : { error: "Failed to fetch" };
+      newResults.case5 = case5.status === "fulfilled" ? case5.value : { error: "Failed to fetch" };
+    } catch (_error) {
+      // 全体的なエラーハンドリング
+      for (let i = 1; i <= 5; i++) {
+        newResults[`case${i}`] = { error: "Failed to fetch" };
       }
     }
     
@@ -835,12 +828,13 @@ export async function GET(request: NextRequest) {
 
 ## 🚀 実装チェックリスト
 
-- [ ] プロジェクト作成（Next.js 15）
-- [ ] 5つのケースページ実装
-- [ ] TestPanelコンポーネント実装
-- [ ] ダッシュボード実装
-- [ ] API Routes実装
-- [ ] Server Actions実装
+- [x] プロジェクト作成（Next.js 15.5.2）
+- [x] 5つのケースページ実装（src/app/case1-5/page.tsx）
+- [x] TestPanelコンポーネント実装（shadcn/ui使用）
+- [x] ダッシュボード実装（src/app/page.tsx）
+- [x] Server Actions実装（API Routes不要）
+- [x] ComparisonTable実装（Server Actions使用）
+- [x] lint/build/typecheck通過
 - [ ] ビルド＆本番環境で起動
 - [ ] 各ケースで検証実施
 - [ ] 結果を記録
